@@ -3,101 +3,409 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anarchic — Coming Soon</title>
+    <title>Anarchic — OSINT Weapon</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;900&display=swap');
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'JetBrains Mono', monospace;
             background: #0a0a0f;
-            color: #e0e0e0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            color: #c0c0c0;
             min-height: 100vh;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
         }
+
+        /* Matrix rain effect line */
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 0, 0.015) 2px,
+                rgba(0, 255, 0, 0.015) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
         .container {
             text-align: center;
             padding: 2rem;
+            position: relative;
+            z-index: 1;
         }
-        .glitch {
-            font-size: 6rem;
+
+        .ascii {
+            color: #00ff41;
+            font-size: 0.45rem;
+            line-height: 1.1;
+            text-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+            margin-bottom: 2rem;
+            white-space: pre;
+        }
+
+        .title {
+            font-size: 5rem;
             font-weight: 900;
-            background: linear-gradient(135deg, #00f260, #0575e6);
+            letter-spacing: 0.4em;
+            background: linear-gradient(135deg, #00ff41, #00b8ff, #ff0055);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: pulse 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(0, 255, 65, 0.2));
+            margin-bottom: 0.5rem;
         }
-        .tagline {
-            font-size: 1.5rem;
-            color: #666;
-            margin: 1rem 0 2rem;
-            letter-spacing: 0.5em;
+
+        .subtitle {
+            font-size: 1.2rem;
+            letter-spacing: 0.6em;
+            color: #444;
             text-transform: uppercase;
+            margin-bottom: 2rem;
         }
-        .status {
-            display: inline-block;
-            padding: 0.5rem 2rem;
-            border: 1px solid #00f260;
-            color: #00f260;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            letter-spacing: 0.2em;
+
+        .badges {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
+            flex-wrap: wrap;
             margin-bottom: 3rem;
         }
-        .progress {
-            width: 300px;
-            height: 4px;
-            background: #1a1a2e;
-            border-radius: 2px;
+
+        .badge {
+            padding: 0.4rem 1.2rem;
+            border: 1px solid #222;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            color: #666;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .badge.green { border-color: #00ff41; color: #00ff41; }
+        .badge.blue { border-color: #00b8ff; color: #00b8ff; }
+        .badge.red { border-color: #ff0055; color: #ff0055; }
+        .badge.yellow { border-color: #ffd700; color: #ffd700; }
+
+        .divider {
+            width: 60%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ff41, transparent);
             margin: 2rem auto;
+            opacity: 0.3;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+
+        .feature {
+            padding: 1.2rem;
+            border: 1px solid #111;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.02);
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover {
+            border-color: #00ff41;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .feature .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .feature .label { font-size: 0.65rem; color: #444; letter-spacing: 0.15em; }
+
+        .status-bar {
+            display: inline-block;
+            padding: 0.6rem 2rem;
+            border: 1px solid #ff0055;
+            color: #ff0055;
+            font-size: 0.75rem;
+            letter-spacing: 0.3em;
+            margin-bottom: 2rem;
+            animation: pulse-border 2s ease-in-out infinite;
+        }
+
+        .progress-container {
+            width: 350px;
+            margin: 2rem auto;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.6rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.2em;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 3px;
+            background: #111;
+            border-radius: 2px;
             overflow: hidden;
         }
-        .progress-bar {
-            width: 25%;
+
+        .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #00f260, #0575e6);
+            width: 25%;
+            background: linear-gradient(90deg, #00ff41, #00b8ff, #ff0055);
             border-radius: 2px;
-            animation: loading 2s ease-in-out infinite;
+            animation: progress-pulse 3s ease-in-out infinite;
         }
+
+        .pricing {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+
+        .plan {
+            border: 1px solid #111;
+            border-radius: 12px;
+            padding: 2rem 1.5rem;
+            width: 240px;
+            background: rgba(255,255,255,0.02);
+            transition: all 0.3s ease;
+        }
+
+        .plan:hover {
+            border-color: #333;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .plan.popular {
+            border-color: #00ff41;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.05);
+        }
+
+        .plan .plan-name {
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan .plan-price {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 0.3rem;
+        }
+
+        .plan .plan-price span {
+            font-size: 0.8rem;
+            color: #444;
+            font-weight: 400;
+        }
+
+        .plan .plan-desc {
+            font-size: 0.6rem;
+            color: #444;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.1em;
+        }
+
+        .plan ul {
+            list-style: none;
+            text-align: left;
+            font-size: 0.6rem;
+            color: #555;
+            line-height: 2;
+        }
+
+        .plan ul li::before {
+            content: "▸ ";
+            color: #00ff41;
+        }
+
+        .plan .btn {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 0.6rem 2rem;
+            border: 1px solid #222;
+            border-radius: 4px;
+            color: #555;
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .plan .btn:hover {
+            border-color: #00ff41;
+            color: #00ff41;
+        }
+
         .footer {
             margin-top: 4rem;
-            color: #333;
-            font-size: 0.8rem;
+            padding: 2rem;
+            font-size: 0.6rem;
+            color: #222;
+            letter-spacing: 0.2em;
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
+
+        @keyframes pulse-border {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
         }
-        @keyframes loading {
+
+        @keyframes progress-pulse {
             0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(200px); }
+            50% { transform: translateX(260px); }
         }
-        @media (max-width: 600px) {
-            .glitch { font-size: 3rem; }
-            .tagline { font-size: 1rem; }
+
+        @media (max-width: 700px) {
+            .title { font-size: 2.5rem; letter-spacing: 0.3em; }
+            .ascii { font-size: 0.25rem; }
+            .features { grid-template-columns: repeat(2, 1fr); }
+            .pricing { flex-direction: column; align-items: center; }
+            .plan { width: 100%; max-width: 300px; }
         }
     </style>
 </head>
 <body>
+    <div class="scanline"></div>
+
     <div class="container">
-        <div class="glitch">ANARCHIC</div>
-        <div class="tagline">OSINT · DB SEARCHER</div>
-        <div class="status">🔒 EN DÉVELOPPEMENT</div>
-        <p style="color: #555; max-width: 400px; margin: 0 auto; line-height: 1.8;">
-            Outil OSINT de recherche de bases de données.<br>
-            Windows · Linux · Puissant · Rapide
-        </p>
-        <div class="progress">
-            <div class="progress-bar"></div>
+        <div class="ascii">
+████████╗██╗  ██╗███████╗     █████╗ ███╗   ██╗ █████╗ ██████╗  ██████╗██╗  ██╗██╗ ██████╗
+╚══██╔══╝██║  ██║██╔════╝    ██╔══██╗████╗  ██║██╔══██╗██╔══██╗██╔════╝██║  ██║██║██╔════╝
+   ██║   ███████║█████╗      ███████║██╔██╗ ██║███████║██████╔╝██║     ███████║██║██║     
+   ██║   ██╔══██║██╔══╝      ██╔══██║██║╚██╗██║██╔══██║██╔══██╗██║     ██╔══██║██║██║     
+   ██║   ██║  ██║███████╗    ██║  ██║██║ ╚████║██║  ██║██║  ██║╚██████╗██║  ██║██║╚██████╗
+   ╚═╝   ╚═╝  ╚═╝╚══════╝    ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝ ╚═════╝
         </div>
-        <p style="color: #444; font-size: 0.9rem;">Alpha — 25%</p>
+
+        <div class="title">ANARCHIC</div>
+        <div class="subtitle">THE OSINT WEAPON</div>
+
+        <div class="badges">
+            <span class="badge red">● UNDER DEVELOPMENT</span>
+            <span class="badge yellow">v0.0.1-alpha</span>
+            <span class="badge blue">WINDOWS</span>
+            <span class="badge green">LINUX</span>
+            <span class="badge yellow">PYTHON</span>
+        </div>
+
+        <div class="status-bar">🔒 EN DÉVELOPPEMENT</div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="icon">🔍</div>
+                <div class="label">DB SEARCH</div>
+            </div>
+            <div class="feature">
+                <div class="icon">👤</div>
+                <div class="label">IDENTITY</div>
+            </div>
+            <div class="feature">
+                <div class="icon">🌐</div>
+                <div class="label">SOCIAL</div>
+            </div>
+            <div class="feature">
+                <div class="icon">📡</div>
+                <div class="label">NETWORK</div>
+            </div>
+            <div class="feature">
+                <div class="icon">🔑</div>
+                <div class="label">LEAKS</div>
+            </div>
+            <div class="feature">
+                <div class="icon">📊</div>
+                <div class="label">EXPORT</div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="progress-container">
+            <div class="progress-label">
+                <span>ALPHA PROGRESS</span>
+                <span>25%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+
+        <h3 style="color: #333; letter-spacing: 0.3em; font-size: 0.75rem; margin-top: 3rem; font-weight: 400;">
+            —  ABONNEMENTS  —
+        </h3>
+
+        <div class="pricing">
+            <div class="plan">
+                <div class="plan-name">BASIC</div>
+                <div class="plan-price">10€ <span>/mois</span></div>
+                <div class="plan-desc">Pour débuter en OSINT</div>
+                <ul>
+                    <li>200 requêtes / jour</li>
+                    <li>30 méthodes</li>
+                    <li>Domaine & email</li>
+                    <li>Username tracking</li>
+                    <li>Export CSV</li>
+                </ul>
+                <a href="#" class="btn">Choisir Basic</a>
+            </div>
+
+            <div class="plan popular">
+                <div class="plan-name" style="color: #00ff41;">PRO ★</div>
+                <div class="plan-price">49€ <span>/mois</span></div>
+                <div class="plan-desc">Pour professionnels</div>
+                <ul>
+                    <li>1 000 requêtes / jour</li>
+                    <li>127+ méthodes</li>
+                    <li>Breach intelligence</li>
+                    <li>Vuln scanning & CVE</li>
+                    <li>API REST</li>
+                    <li>Dark web monitoring</li>
+                </ul>
+                <a href="#" class="btn" style="border-color: #00ff41; color: #00ff41;">Choisir Pro</a>
+            </div>
+
+            <div class="plan">
+                <div class="plan-name">ENTERPRISE</div>
+                <div class="plan-price">199€ <span>/mois</span></div>
+                <div class="plan-desc">Pour organisations</div>
+                <ul>
+                    <li>Requêtes illimitées</li>
+                    <li>127+ méthodes</li>
+                    <li>On-premise possible</li>
+                    <li>API REST illimitée</li>
+                    <li>SIEM & Webhooks</li>
+                    <li>Support 24/7</li>
+                </ul>
+                <a href="#" class="btn">Choisir Enterprise</a>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
         <div class="footer">
-            <p>© 2026 Anarchic by Styler</p>
-            <p style="margin-top: 0.5rem;">
-                <a href="#" style="color: #333; text-decoration: none; margin: 0 1rem;">GitHub</a>
-                <a href="#" style="color: #333; text-decoration: none; margin: 0 1rem;">Documentation</a>
+            <p>© 2026 ANARCHIC by STYLER</p>
+            <p style="margin-top: 0.8rem;">
+                <a href="https://github.com/lekdev-pl/anarchic" style="color: #333; text-decoration: none; letter-spacing: 0.2em;">github.com/lekdev-pl/anarchic</a>
             </p>
         </div>
     </div>
